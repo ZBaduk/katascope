@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>katascope</title>
+    <base href="./" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!--
+      The renderer is untrusted-by-construction: no Node, no remote content.
+      'unsafe-inline' for styles is required because Angular injects component
+      styles as <style> elements. The 127.0.0.1 connect-src entries are what the
+      dev server's live-reload socket needs; they are inert in a packaged build.
+    -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self';
+               script-src 'self';
+               style-src 'self' 'unsafe-inline';
+               img-src 'self' data:;
+               font-src 'self' data:;
+               connect-src 'self' ws://127.0.0.1:4200 http://127.0.0.1:4200;
+               object-src 'none';
+               base-uri 'self';
+               form-action 'none';"
+    />
+  </head>
+  <body>
+    <ks-root></ks-root>
+  </body>
+</html>

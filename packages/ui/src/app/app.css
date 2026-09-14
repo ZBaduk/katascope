@@ -1,0 +1,26 @@
+.shell {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  height: 100vh;
+}
+
+.shell__header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 0 16px;
+  background: var(--ks-surface);
+  border-bottom: 1px solid var(--ks-border);
+}
+
+.shell__title {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--ks-text-muted);
+  user-select: none;
+}
+
+.shell__body {
+  min-height: 0;
+  overflow: auto;
+}

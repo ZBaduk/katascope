@@ -1,0 +1,77 @@
+<section class="page">
+  <header class="page__header">
+    <h1 class="page__title">Diagnostics</h1>
+    <button type="button" class="page__reload" (click)="reload()" [disabled]="!connected">Reload</button>
+  </header>
+
+  @if (!connected) {
+    <p class="notice notice--warn">
+      Not running under Electron, so there is no bridge to inspect. Start the desktop app with
+      <code>npm run dev</code> to see engine status here.
+    </p>
+  } @else {
+    <h2 class="section">Runtime</h2>
+    @if (status.error(); as error) {
+      <p class="notice notice--error">{{ errorText(error) }}</p>
+    } @else if (status.value(); as value) {
+      <dl class="facts">
+        <dt>katascope</dt>
+        <dd>{{ value.appVersion }}</dd>
+        <dt>Electron</dt>
+        <dd>{{ value.electronVersion }}</dd>
+        <dt>Chromium</dt>
+        <dd>{{ value.chromeVersion }}</dd>
+        <dt>Node</dt>
+        <dd>{{ value.nodeVersion }}</dd>
+      </dl>
+
+      <h2 class="section">Subsystems</h2>
+      <ul class="subsystems">
+        @for (subsystem of value.subsystems; track subsystem.name) {
+          <li class="subsystem">
+            <span class="dot" [class.dot--ok]="subsystem.ready" [class.dot--bad]="!subsystem.ready"></span>
+            <span class="subsystem__name">{{ subsystem.name }}</span>
+            <span class="badge">{{ subsystem.mode }}</span>
+            <span class="subsystem__detail">{{ subsystem.detail }}</span>
+          </li>
+        }
+      </ul>
+    } @else {
+      <p class="notice">Loading…</p>
+    }
+
+    <h2 class="section">Configuration</h2>
+    @if (config.error(); as error) {
+      <p class="notice notice--error">{{ errorText(error) }}</p>
+    } @else if (config.value(); as value) {
+      <p class="notice">
+        @if (value.path) {
+          Loaded from <code>{{ value.path }}</code>
+        } @else {
+          No config file found; using built-in defaults.
+        }
+      </p>
+
+      @for (problem of value.problems; track $index) {
+        <p class="notice notice--warn"><code>{{ problem.field }}</code> — {{ problem.message }}</p>
+      }
+
+      <dl class="facts">
+        <dt>useFakes</dt>
+        <dd>{{ value.config.useFakes }}</dd>
+        <dt>katagoPath</dt>
+        <dd>{{ value.config.katagoPath || '—' }}</dd>
+        <dt>modelPath</dt>
+        <dd>{{ value.config.modelPath || '—' }}</dd>
+        <dt>katagoConfigPath</dt>
+        <dd>{{ value.config.katagoConfigPath || '—' }}</dd>
+        <dt>pythonPath</dt>
+        <dd>{{ value.config.pythonPath || '—' }}</dd>
+        <dt>sidecarPath</dt>
+        <dd>{{ value.config.sidecarPath || '—' }}</dd>
+      </dl>
+    } @else {
+      <p class="notice">Loading…</p>
+    }
+  }
+</section>

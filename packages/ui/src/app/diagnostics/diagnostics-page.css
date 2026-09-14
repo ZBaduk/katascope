@@ -1,0 +1,140 @@
+.page {
+  padding: 24px;
+  max-width: 900px;
+}
+
+.page__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.page__title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.page__reload {
+  margin-left: auto;
+  padding: 6px 12px;
+  color: var(--ks-text);
+  background: var(--ks-surface-raised);
+  border: 1px solid var(--ks-border);
+  border-radius: var(--ks-radius);
+  cursor: pointer;
+  font: inherit;
+}
+
+.page__reload:hover:not(:disabled) {
+  border-color: var(--ks-accent);
+}
+
+.page__reload:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.section {
+  margin: 28px 0 10px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ks-text-muted);
+}
+
+.notice {
+  margin: 8px 0;
+  padding: 10px 12px;
+  background: var(--ks-surface);
+  border: 1px solid var(--ks-border);
+  border-left-width: 3px;
+  border-radius: var(--ks-radius);
+  color: var(--ks-text-muted);
+}
+
+.notice--warn {
+  border-left-color: var(--ks-warn);
+}
+
+.notice--error {
+  border-left-color: var(--ks-error);
+  color: var(--ks-error);
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 6px 20px;
+  margin: 0;
+}
+
+.facts dt {
+  color: var(--ks-text-muted);
+}
+
+.facts dd {
+  margin: 0;
+  font-family: var(--ks-font-mono);
+  overflow-wrap: anywhere;
+}
+
+.subsystems {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.subsystem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--ks-surface);
+  border: 1px solid var(--ks-border);
+  border-radius: var(--ks-radius);
+}
+
+.subsystem__name {
+  font-weight: 600;
+}
+
+.subsystem__detail {
+  color: var(--ks-text-muted);
+  font-family: var(--ks-font-mono);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.badge {
+  padding: 1px 7px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ks-text-muted);
+  border: 1px solid var(--ks-border);
+  border-radius: 999px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: none;
+}
+
+.dot--ok {
+  background: var(--ks-ok);
+}
+
+.dot--bad {
+  background: var(--ks-error);
+}
+
+code {
+  font-family: var(--ks-font-mono);
+  font-size: 12px;
+}

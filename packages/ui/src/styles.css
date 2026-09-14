@@ -1,0 +1,49 @@
+/*
+ * Global tokens and resets only. Anything component-specific belongs in that
+ * component's styles.
+ */
+
+:root {
+  color-scheme: dark;
+
+  --ks-bg: #14161a;
+  --ks-surface: #1c1f26;
+  --ks-surface-raised: #242832;
+  --ks-border: #333946;
+  --ks-text: #e6e9ef;
+  --ks-text-muted: #98a0b0;
+  --ks-accent: #6aa9ff;
+  --ks-ok: #57c98a;
+  --ks-warn: #e2b04a;
+  --ks-error: #e5736b;
+
+  --ks-radius: 6px;
+  --ks-gap: 12px;
+
+  --ks-font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --ks-font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--ks-bg);
+  color: var(--ks-text);
+  font: 14px/1.5 var(--ks-font);
+  /* The window chrome is the app's chrome; the document itself never scrolls. */
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+  outline: 2px solid var(--ks-accent);
+  outline-offset: 2px;
+}

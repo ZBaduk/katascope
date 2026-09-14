@@ -1,0 +1,21 @@
+{
+  "name": "katascope-desktop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Electron shell: main process, preload bridge, and IPC wiring.",
+  "main": "dist/main/index.cjs",
+  "scripts": {
+    "build": "node build.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@katascope/core": "0.1.0",
+    "@katascope/katago-bridge": "0.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.3",
+    "electron": "^44.3.0",
+    "esbuild": "^0.25.0",
+    "typescript": "6.0.3"
+  }
+}

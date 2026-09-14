@@ -1,0 +1,7 @@
+node_modules/
+dist/
+out/
+*.tsbuildinfo
+.angular/
+.DS_Store
+katascope.config.local.json
