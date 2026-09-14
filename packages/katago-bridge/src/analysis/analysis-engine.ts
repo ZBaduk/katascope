@@ -23,6 +23,15 @@ export interface AnalysisQuery {
   readonly moves: readonly Move[];
   readonly turnNumber: number;
   readonly maxVisits: number;
+  /**
+   * Who is to move at turn 0. Sent as KataGo's `initialPlayer`, which it
+   * otherwise infers from the handicap stones.
+   */
+  readonly initialPlayer?: 'B' | 'W';
+  /** Ask for the raw policy alongside the search result. Defaults to false. */
+  readonly includePolicy?: boolean;
+  /** Ask for the ownership prediction. Defaults to false. */
+  readonly includeOwnership?: boolean;
 }
 
 /** One candidate move, as reported by KataGo. */
@@ -52,11 +61,36 @@ export interface AnalysisResult {
   readonly turnNumber: number;
   readonly rootInfo: RootAnalysis;
   readonly moveInfos: readonly MoveAnalysis[];
+  /**
+   * Raw network policy, present when `includePolicy` was set.
+   * `width * height + 1` entries, row-major from the top-left, pass last.
+   * **Illegal moves are `-1`**, not zero -- KataGo's convention, preserved so
+   * callers must decide what to do rather than comparing against a fabricated
+   * probability.
+   */
+  readonly policy?: readonly number[];
+  /**
+   * Ownership prediction, present when `includeOwnership` was set.
+   * `width * height` entries in [-1, 1], row-major from the top-left.
+   * The sign is relative to `reportAnalysisWinratesAs` in the engine config;
+   * `configs/analysis-deterministic.cfg` sets that to SIDETOMOVE.
+   */
+  readonly ownership?: readonly number[];
 }
+
+/** What an engine is currently doing, for Diagnostics. */
+export type EngineState = 'stopped' | 'starting' | 'ready' | 'failed';
 
 export interface AnalysisEngine {
   /** Starts the engine. Idempotent. Rejects if the engine cannot be launched. */
   start(): Promise<void>;
+  /** Current lifecycle state. Never throws. */
+  readonly state: EngineState;
+  /**
+   * Stops the process and starts a fresh one, failing any in-flight requests.
+   * Used to recover from a crash without rebuilding the whole bridge.
+   */
+  restart(): Promise<void>;
   /** Engine version string, for Diagnostics. */
   version(): Promise<string>;
   /** Analyses a single position. */

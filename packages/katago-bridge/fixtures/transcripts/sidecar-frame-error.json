@@ -1,0 +1,14 @@
+{
+  "steps": [
+    {
+      "expect": { "type": "describe" },
+      "reply": {
+        "ok": true,
+        "network": { "name": "tiny-b2c2", "blocks": 2, "channels": 2, "boardXSize": 2, "boardYSize": 2 },
+        "maxMoveNumber": 40,
+        "dtype": "float32"
+      }
+    },
+    { "reply": { "ok": false, "error": "block 9 out of range (model has 2 blocks)" } }
+  ]
+}

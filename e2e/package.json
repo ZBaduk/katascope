@@ -1,0 +1,20 @@
+{
+  "name": "katascope-e2e",
+  "version": "0.1.0",
+  "private": true,
+  "description": "End-to-end smoke tests: drives the packaged Electron app with Playwright.",
+  "type": "module",
+  "scripts": {
+    "e2e": "playwright test",
+    "e2e:headed": "playwright test --headed",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@katascope/core": "0.1.0",
+    "@playwright/test": "^1.63.0",
+    "@types/node": "^22.15.3",
+    "electron": "^44.3.0",
+    "typescript": "6.0.3"
+  }
+}

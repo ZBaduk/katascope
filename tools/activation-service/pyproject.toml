@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "katascope-activation-service"
+version = "0.1.0"
+description = "Reads KataGo model internals and serves activation frames to katascope over JSON lines."
+requires-python = ">=3.10"
+dependencies = [
+    "torch>=2.4",
+    "numpy>=1.24",
+]
+
+[project.optional-dependencies]
+# Deliberately excludes torch: the suite must be installable and runnable in CI,
+# where every model-dependent test skips and a 200 MB wheel would buy nothing.
+dev = [
+    "pytest>=8.0",
+    "pytest-timeout>=2.3",
+    "numpy>=1.24",
+]
+
+[tool.setuptools.packages.find]
+include = ["activation_service*"]
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+# Makes `activation_service` and `tests/support` importable without an editable
+# install, so `pytest` works in a bare checkout.
+pythonpath = [".", "tests"]
+addopts = "-ra --strict-markers --strict-config"
+markers = [
+    "katago: needs a real katago binary and model (skipped unless configured)",
+    "golden: compares against katago raw-net output; implies katago",
+    "slow: takes more than a few seconds",
+]
+timeout = 600

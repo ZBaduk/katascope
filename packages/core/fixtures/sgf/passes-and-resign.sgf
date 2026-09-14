@@ -1,0 +1,7 @@
+(;GM[1]FF[4]CA[UTF-8]SZ[9]KM[7.0]RU[Chinese]
+PB[Alice]PW[Bob]
+RE[W+Resign]
+C[Exercises both pass encodings: B\[\] (FF\[4\], an empty value) and
+W\[tt\] (the FF\[3\] convention, still emitted by older tools for
+boards up to 19x19). Note the escaped brackets in this comment.]
+;B[ee];W[ge];B[];W[tt];B[cc];W[gc];B[];W[cg])

@@ -1,0 +1,19 @@
+{
+  "stderrOnStart": ["activation-service: loaded tiny-b2c2"],
+  "steps": [
+    {
+      "expect": { "type": "describe" },
+      "reply": {
+        "ok": true,
+        "network": { "name": "tiny-b2c2", "blocks": 2, "channels": 2, "boardXSize": 2, "boardYSize": 2 },
+        "maxMoveNumber": 40,
+        "dtype": "float32"
+      }
+    },
+    {
+      "expect": { "type": "frame", "block": 1 },
+      "reply": { "ok": true, "dtype": "float32", "min": 0.0, "max": 3.5 },
+      "binaryFloat32": [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5]
+    }
+  ]
+}

@@ -1,3 +1,30 @@
+<div class="tabs-inner">
+  <nav class="subnav" role="tablist" aria-label="Diagnostics sections">
+    <button
+      type="button"
+      role="tab"
+      [attr.aria-selected]="section() === 'activations'"
+      [class.subnav__item--active]="section() === 'activations'"
+      class="subnav__item"
+      (click)="section.set('activations')"
+    >
+      Activations
+    </button>
+    <button
+      type="button"
+      role="tab"
+      [attr.aria-selected]="section() === 'runtime'"
+      [class.subnav__item--active]="section() === 'runtime'"
+      class="subnav__item"
+      (click)="section.set('runtime')"
+    >
+      Runtime
+    </button>
+  </nav>
+
+@if (section() === 'activations') {
+  <ks-activation-view />
+} @else {
 <section class="page">
   <header class="page__header">
     <h1 class="page__title">Diagnostics</h1>
@@ -40,6 +67,16 @@
       <p class="notice">Loading…</p>
     }
 
+    <h2 class="section">Session</h2>
+    <dl class="facts">
+      <dt>Game</dt>
+      <dd data-testid="session-game">{{ session.game()?.path ?? 'none loaded' }}</dd>
+      <dt>Move</dt>
+      <dd data-testid="session-move">{{ session.moveNumber() }} / {{ session.lastMoveNumber() }}</dd>
+      <dt>Cached</dt>
+      <dd>{{ session.cacheSizes().analysis }} analyses, {{ session.cacheSizes().frames }} frames</dd>
+    </dl>
+
     <h2 class="section">Configuration</h2>
     @if (config.error(); as error) {
       <p class="notice notice--error">{{ errorText(error) }}</p>
@@ -75,3 +112,5 @@
     }
   }
 </section>
+}
+</div>

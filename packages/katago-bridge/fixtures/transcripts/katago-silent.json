@@ -1,0 +1,7 @@
+{
+  "stderrOnStart": ["Started, ready to begin handling requests"],
+  "steps": [
+    { "noReply": true }
+  ],
+  "onExhausted": "ignore"
+}

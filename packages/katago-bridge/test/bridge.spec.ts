@@ -7,10 +7,8 @@ import { describe, expect, it } from 'vitest';
 import { pass, play, squareBoardSize, DEFAULT_CONFIG } from '@katascope/core';
 import {
   createBridge,
-  decodePlanes,
   loadConfig,
   resolvePaths,
-  SidecarProtocolError,
   toAnalysisResult,
   toKataGoQuery,
 } from '../src/index.js';
@@ -36,6 +34,37 @@ describe('toKataGoQuery', () => {
     ]);
     expect(query['analyzeTurns']).toEqual([2]);
     expect(query['maxVisits']).toBe(64);
+  });
+
+  it('pins ignorePreRootHistory off, whatever the user config says', () => {
+    // The analysis engine defaults this to true, which evaluates the root with
+    // no history planes. The activation service always encodes the history it
+    // is given, so the two would describe different positions. `katagoConfigPath`
+    // is the user's file and may be KataGo's stock one, so the guarantee is made
+    // per query rather than left to configuration.
+    const query = toKataGoQuery({
+      boardSize: SIZE,
+      rules: 'chinese',
+      komi: 7.5,
+      initialStones: [],
+      moves: [],
+      turnNumber: 0,
+      maxVisits: 1,
+    });
+    expect(query['overrideSettings']).toMatchObject({ ignorePreRootHistory: false });
+  });
+
+  it('pins whiteHandicapBonus to zero so the komi sent is the komi the net sees', () => {
+    const query = toKataGoQuery({
+      boardSize: SIZE,
+      rules: 'chinese',
+      komi: 0.5,
+      initialStones: [],
+      moves: [],
+      turnNumber: 0,
+      maxVisits: 1,
+    });
+    expect(query['whiteHandicapBonus']).toBe('0');
   });
 });
 
@@ -67,32 +96,48 @@ describe('toAnalysisResult', () => {
   });
 });
 
-describe('decodePlanes', () => {
-  it('round-trips float32 data', () => {
-    const source = new Float32Array([0, 1.5, -2.25, 1e-3]);
-    const base64 = Buffer.from(source.buffer).toString('base64');
-    expect([...decodePlanes(base64, 'float32')]).toEqual([...source]);
-  });
-
-  it('round-trips uint8 data', () => {
-    const base64 = Buffer.from([0, 127, 255]).toString('base64');
-    expect([...decodePlanes(base64, 'uint8')]).toEqual([0, 127, 255]);
-  });
-
-  it('rejects a float32 payload that is not a multiple of 4 bytes', () => {
-    const base64 = Buffer.from([1, 2, 3]).toString('base64');
-    expect(() => decodePlanes(base64, 'float32')).toThrow(SidecarProtocolError);
-  });
-});
-
 describe('resolvePaths', () => {
-  it('leaves bare command names alone and absolutises the rest', () => {
+  it('leaves bare command names alone', () => {
     const resolved = resolvePaths(
-      { ...DEFAULT_CONFIG, pythonPath: 'python3', sidecarPath: 'sidecar/activations.py' },
+      { ...DEFAULT_CONFIG, pythonPath: 'python3', katagoPath: 'katago' },
       '/opt/app',
     );
     expect(resolved.pythonPath).toBe('python3');
-    expect(resolved.sidecarPath).toBe('/opt/app/sidecar/activations.py');
+    expect(resolved.katagoPath).toBe('katago');
+  });
+
+  it('resolves commands that do contain a separator', () => {
+    const resolved = resolvePaths({ ...DEFAULT_CONFIG, katagoPath: 'bin/katago' }, '/opt/app');
+    expect(resolved.katagoPath).toBe('/opt/app/bin/katago');
+  });
+
+  it('resolves file paths against the config directory', () => {
+    const resolved = resolvePaths(
+      { ...DEFAULT_CONFIG, sidecarPath: 'tools/activation-service/serve.py' },
+      '/opt/app',
+    );
+    expect(resolved.sidecarPath).toBe('/opt/app/tools/activation-service/serve.py');
+  });
+
+  it('resolves a bare file name against the config directory, not PATH', () => {
+    // A model sitting next to the config is written as a bare name. Treating
+    // that as a PATH lookup left it relative, so it resolved against whatever
+    // directory Electron happened to start in.
+    const resolved = resolvePaths(
+      { ...DEFAULT_CONFIG, modelPath: 'b6c96.bin.gz', katagoConfigPath: 'analysis.cfg' },
+      '/opt/app',
+    );
+    expect(resolved.modelPath).toBe('/opt/app/b6c96.bin.gz');
+    expect(resolved.katagoConfigPath).toBe('/opt/app/analysis.cfg');
+  });
+
+  it('leaves absolute paths and empty strings untouched', () => {
+    const resolved = resolvePaths(
+      { ...DEFAULT_CONFIG, modelPath: '/abs/model.bin.gz', katagoConfigPath: '' },
+      '/opt/app',
+    );
+    expect(resolved.modelPath).toBe('/abs/model.bin.gz');
+    expect(resolved.katagoConfigPath).toBe('');
   });
 });
 

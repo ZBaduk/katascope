@@ -1,0 +1,5 @@
+# Pinned loosely on purpose: this service has no implementation yet, so the
+# only firm requirement is a test runner that can express the skips.
+pytest>=8.0
+pytest-timeout>=2.3
+numpy>=1.24

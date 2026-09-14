@@ -1,3 +1,12 @@
+/* The routed component is the shell's content row, so its host has to fill it:
+   without this the activation grid grows past the viewport and the detail pane
+   below it is pushed off screen. */
+:host {
+  display: block;
+  height: 100%;
+  min-height: 0;
+}
+
 .page {
   padding: 24px;
   max-width: 900px;
@@ -137,4 +146,42 @@
 code {
   font-family: var(--ks-font-mono);
   font-size: 12px;
+}
+
+.tabs-inner {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  height: 100%;
+  min-height: 0;
+}
+
+.subnav {
+  display: flex;
+  gap: 4px;
+  padding: 8px 14px 0;
+  border-bottom: 1px solid var(--ks-border);
+}
+
+.subnav__item {
+  padding: 6px 12px;
+  font: inherit;
+  font-size: 12px;
+  color: var(--ks-text-muted);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+}
+
+.subnav__item:hover {
+  color: var(--ks-text);
+}
+
+.subnav__item--active {
+  color: var(--ks-text);
+  border-bottom-color: var(--ks-accent);
+}
+
+.page {
+  overflow: auto;
 }

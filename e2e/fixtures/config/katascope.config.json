@@ -1,0 +1,10 @@
+{
+  "$comment": "Config for the end-to-end smoke test. Deliberately separate from the repo root's, so the suite is hermetic: a developer with a real KataGo configured in katascope.config.local.json must still get the same smoke run as CI, which has none.",
+  "useFakes": true,
+  "katagoPath": "katago",
+  "modelPath": "",
+  "checkpointPath": "",
+  "katagoConfigPath": "",
+  "pythonPath": "python3",
+  "sidecarPath": "tools/activation-service/serve.py"
+}

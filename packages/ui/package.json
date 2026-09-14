@@ -7,7 +7,9 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "serve": "ng serve",
-    "typecheck": "tsc -p tsconfig.app.json --noEmit"
+    "test": "ng test",
+    "test:ci": "ng test",
+    "typecheck": "tsc -p tsconfig.app.json --noEmit && tsc -p tsconfig.spec.json --noEmit"
   },
   "dependencies": {
     "@angular/common": "^22.1.6",
@@ -24,6 +26,7 @@
     "@angular/build": "^22.1.6",
     "@angular/cli": "^22.1.8",
     "@angular/compiler-cli": "^22.1.6",
-    "typescript": "6.0.3"
+    "typescript": "6.0.3",
+    "jsdom": "^30.0.1"
   }
 }

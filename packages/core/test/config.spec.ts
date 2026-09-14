@@ -44,6 +44,10 @@ describe('validateConfig', () => {
 
   it('requires every path once fakes are off', () => {
     const problems = validateConfig({ ...DEFAULT_CONFIG, useFakes: false });
-    expect(problems.map((p) => p.field)).toEqual(['modelPath', 'katagoConfigPath']);
+    expect(problems.map((p) => p.field)).toEqual([
+      'modelPath',
+      'checkpointPath',
+      'katagoConfigPath',
+    ]);
   });
 });

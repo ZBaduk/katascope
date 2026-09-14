@@ -1,0 +1,8 @@
+# Runtime dependencies of the activation service.
+#
+# torch is ~200 MB and only needed to actually load a model, so it is kept out
+# of requirements-dev.txt: CI installs the dev set, runs a suite in which every
+# model-dependent test skips, and stays light. Install this set when you have a
+# checkpoint to point at.
+torch>=2.4
+numpy>=1.24

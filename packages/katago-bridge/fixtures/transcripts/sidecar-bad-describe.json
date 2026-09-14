@@ -1,0 +1,5 @@
+{
+  "steps": [
+    { "reply": { "ok": true, "maxMoveNumber": 40, "dtype": "float32" } }
+  ]
+}

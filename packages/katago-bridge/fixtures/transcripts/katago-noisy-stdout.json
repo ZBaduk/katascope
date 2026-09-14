@@ -1,0 +1,7 @@
+{
+  "stdoutOnStart": ["KataGo v1.15.3", "Using 1 GPU", ""],
+  "stderrOnStart": ["Started, ready to begin handling requests"],
+  "steps": [
+    { "rawStdout": ["still warming up, not json"], "reply": { "version": "1.15.3" } }
+  ]
+}

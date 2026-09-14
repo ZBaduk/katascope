@@ -11,16 +11,21 @@
     "packages/core",
     "packages/katago-bridge",
     "packages/ui",
-    "apps/desktop"
+    "apps/desktop",
+    "e2e"
   ],
   "scripts": {
     "dev": "node scripts/dev.mjs",
+    "dump": "npm run build:libs --silent && node packages/katago-bridge/dist/cli/dump.js",
     "build": "npm run build --workspace @katascope/core --workspace @katascope/katago-bridge && npm run build --workspace @katascope/ui && npm run build --workspace katascope-desktop",
     "build:libs": "npm run build --workspace @katascope/core --workspace @katascope/katago-bridge",
     "pretypecheck": "npm run build:libs",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "pretest": "npm run build:libs",
     "test": "npm run test --workspaces --if-present",
+    "pretest:ci": "npm run build:libs",
+    "test:ci": "npm run test:ci --workspaces --if-present",
+    "test:e2e": "npm run build && npm run e2e --workspace katascope-e2e",
     "clean": "rm -rf packages/*/dist packages/*/tsconfig.tsbuildinfo apps/*/dist packages/ui/.angular",
     "prepare": "npm run build:libs"
   },

@@ -1,0 +1,309 @@
+<section class="view">
+  <header class="controls">
+    <button type="button" class="controls__open" (click)="openCapture()" [disabled]="!connected">
+      Open .kact…
+    </button>
+    @if (store.capture(); as capture) {
+      <span class="controls__capture" data-testid="capture-summary">
+        {{ capture.networkName }} · {{ capture.moveNumbers.length }} moves ·
+        {{ capture.blockNumbers.length }} blocks
+      </span>
+      <button type="button" class="controls__close" (click)="closeCapture()">Close</button>
+    }
+
+    <!--
+      Stepping the game without leaving the tab. The grid follows the move, so
+      going back to the Board tab to advance one stone and returning was the
+      whole loop for anyone comparing positions.
+    -->
+    <div class="control control--moves" data-testid="diag-move-nav">
+      <button
+        type="button"
+        class="control__step"
+        title="Previous move"
+        aria-label="Previous move"
+        [disabled]="store.moveNumber() <= 0"
+        (click)="store.stepMove(-1)"
+      >
+        ‹
+      </button>
+      <span class="control__moves" data-testid="diag-move">
+        move {{ store.moveNumber() }} / {{ store.lastMoveNumber() }}
+      </span>
+      <button
+        type="button"
+        class="control__step"
+        title="Next move"
+        aria-label="Next move"
+        [disabled]="store.moveNumber() >= store.lastMoveNumber()"
+        (click)="store.stepMove(1)"
+      >
+        ›
+      </button>
+    </div>
+
+    <div class="controls__spacer"></div>
+
+    <label class="control">
+      <input type="checkbox" [checked]="showChange()" (change)="showChange.set(!showChange())" />
+      Change
+    </label>
+    @if (showChange()) {
+      <label
+        class="control control--slider"
+        title="Fraction of the largest change in a plane, measured against the last position with the same player to move"
+      >
+        <input
+          type="range"
+          min="0"
+          max="1"
+          step="0.02"
+          [value]="changeFraction()"
+          (input)="changeFraction.set(+$any($event.target).value)"
+          aria-label="Change threshold"
+        />
+        <span class="control__value">{{ (changeFraction() * 100).toFixed(0) }}%</span>
+      </label>
+    }
+
+    <label class="control control--select" title="How the tiles are ordered">
+      Sort
+      <select [value]="ordering()" (change)="setOrdering($any($event.target).value)" aria-label="Channel ordering">
+        <option value="channel" [selected]="ordering() === 'channel'">channel</option>
+        <option value="change" [selected]="ordering() === 'change'">change</option>
+        <option value="impact" [selected]="ordering() === 'impact'">impact</option>
+        <option
+          value="attribution"
+          [selected]="ordering() === 'attribution'"
+          [disabled]="!attributionAvailable()"
+        >
+          attribution
+        </option>
+      </select>
+    </label>
+
+    @if (store.isLastBlock()) {
+      <label class="control control--select" title="Which head's reader weights apply to the last block">
+        Head
+        <select
+          [value]="store.readerHead()"
+          (change)="setReaderHead($any($event.target).value)"
+          aria-label="Reader head"
+        >
+          <option value="policy" [selected]="store.readerHead() === 'policy'">policy</option>
+          <option value="value" [selected]="store.readerHead() === 'value'">value / ownership</option>
+        </select>
+      </label>
+    }
+
+    @if (ordering() === 'attribution') {
+      <label class="control control--select" title="What attribution is measured against">
+        Target
+        <select
+          [value]="store.attributionTarget()?.kind ?? ''"
+          (change)="setTarget($any($event.target).value)"
+          aria-label="Attribution target"
+        >
+          <option value="" [selected]="store.attributionTarget() === undefined">
+            none — click the board to pick a point
+          </option>
+          @for (choice of targetChoices; track choice.value) {
+            <option [value]="choice.value" [selected]="store.attributionTarget()?.kind === choice.value">
+              {{ choice.label }}
+            </option>
+          }
+          <!--
+            A point target comes from the Board tab and has no entry of its own.
+            Without this the select falls back to "none" and misreports the
+            state while the status line says otherwise.
+          -->
+          @if (pointTargetLabel(); as label) {
+            <option value="point" selected disabled>{{ label }}</option>
+          }
+        </select>
+      </label>
+
+      @if (store.attribution()?.planes !== undefined || showAttributionPlanes()) {
+        <label class="control" title="Draw activation x gradient instead of raw activations">
+          <input
+            type="checkbox"
+            [checked]="showAttributionPlanes()"
+            (change)="showAttributionPlanes.set(!showAttributionPlanes())"
+          />
+          Attribution planes
+        </label>
+      } @else if (store.attributionTarget() !== undefined) {
+        <label class="control" title="Draw activation x gradient instead of raw activations">
+          <input
+            type="checkbox"
+            [checked]="showAttributionPlanes()"
+            (change)="showAttributionPlanes.set(!showAttributionPlanes())"
+          />
+          Attribution planes
+        </label>
+      }
+    }
+
+    @if (store.isLastBlock()) {
+      <label class="control" title="Re-run a head with channels removed">
+        <input
+          type="checkbox"
+          [checked]="showReduce()"
+          (change)="toggleReduce()"
+          aria-label="Reduce"
+        />
+        Reduce
+      </label>
+    }
+
+    <label class="control" title="Find channels that respond to a region of the board">
+      <input
+        type="checkbox"
+        [checked]="showSearch()"
+        (change)="toggleSearch()"
+        aria-label="Region search"
+      />
+      Search
+    </label>
+
+    <label class="control control--slider" title="Hide channels with little variance across the game">
+      Hide unused
+      <input
+        type="range"
+        min="0"
+        max="0.5"
+        step="0.005"
+        [value]="hideUnusedFraction()"
+        (input)="hideUnusedFraction.set(+$any($event.target).value)"
+        aria-label="Hide unused threshold"
+      />
+      <span class="control__value" data-testid="hidden-count">{{ hiddenCount() }}</span>
+    </label>
+  </header>
+
+  @if (!connected) {
+    <p class="notice notice--warn">
+      Not running under Electron, so there are no activations to read.
+    </p>
+  } @else if (blocks() === 0) {
+    <p class="notice">No network described yet.</p>
+  } @else {
+    <div class="body">
+      <ks-block-rail
+        [blocks]="blocks()"
+        [selected]="store.block()"
+        [present]="store.activationBlocks()"
+        [channels]="channels()"
+        (blockSelected)="selectBlock($event)"
+      />
+
+      <div class="main">
+        <div class="status" data-testid="grid-status">
+          <span>block {{ store.block() }} · {{ channels() }} channels</span>
+          @if (store.statsState() === 'loading') {
+            <span class="status__note">computing per-channel ranges…</span>
+          } @else if (store.statsState() === 'ready') {
+            <span class="status__note">
+              normalised over {{ store.statsSampled() }} move{{ store.statsSampled() === 1 ? '' : 's' }}
+            </span>
+          } @else if (store.statsState() === 'error') {
+            <span class="status__note status__note--bad">
+              per-channel ranges unavailable — scaling each plane to itself
+            </span>
+          }
+          @if (store.frameState() === 'error') {
+            <span class="status__note status__note--bad">{{ store.frameError() }}</span>
+          }
+          @if (showChange()) {
+            <!-- Move 0 is a real comparison and a falsy number; see plane-detail. -->
+            @if (comparisonMove() !== undefined) {
+              <span class="status__note" data-testid="comparison-note">
+                change vs move {{ comparisonMove() }} (same player to move)
+              </span>
+            } @else {
+              <span class="status__note" data-testid="comparison-note">
+                no earlier position with this player to move — no change overlay
+              </span>
+            }
+          }
+          @if (ordering() === 'attribution') {
+            @if (targetLabel(); as label) {
+              <span class="status__note" data-testid="attribution-target">target: {{ label }}</span>
+              @switch (store.attributionState()) {
+                @case ('loading') {
+                  <span class="status__note">attributing…</span>
+                }
+                @case ('error') {
+                  <span class="status__note status__note--bad">{{ store.attributionError() }}</span>
+                }
+              }
+            } @else {
+              <span class="status__note" data-testid="attribution-target">
+                no target — pick one above, or click a point on the Board tab
+              </span>
+            }
+          }
+          @if (store.isLastBlock() && leans() !== undefined) {
+            <span class="status__note">tinted by which head reads each channel</span>
+          }
+          @if (usingMainThread()) {
+            <span class="status__note">worker unavailable — rendering on the main thread</span>
+          }
+        </div>
+
+        <ks-channel-grid
+          [channels]="channels()"
+          [boardSize]="boardSize()"
+          [pixels]="pixels()"
+          [order]="order()"
+          [selected]="detailChannel()"
+          [hidden]="hiddenChannels()"
+          [selectable]="showReduce() && store.isLastBlock()"
+          [selectedChannels]="reduce.selected()"
+          (hovered)="onHover($event)"
+          (channelPicked)="onPick($event)"
+          (selectionToggled)="onSelectionToggled($event)"
+        />
+
+        <!--
+          Always mounted. Showing it only with a selection cost the canvas above
+          it ~230px each time, which moved the grid out from under the pointer
+          and made the drawer oscillate.
+        -->
+        <ks-plane-detail
+          [block]="store.block()"
+          [channel]="detailChannel()"
+          [boardSize]="boardSize()"
+          [board]="store.board()"
+          [lastMove]="store.lastPlayedMove()"
+          [stats]="hoverStats()"
+          [pixels]="detailPixels()"
+          [hover]="detailHover()"
+          [impact]="detailImpact()"
+          [readerNorm]="detailReaderNorm()"
+          [readerHead]="store.isLastBlock() ? store.readerHead() : undefined"
+          [attribution]="detailAttribution()"
+          [attributionTarget]="targetLabel()"
+        />
+
+      </div>
+
+      <!--
+        Both panels live beside the grid rather than under it. Stacking them
+        below cost the grid most of its height, and a squashed grid is one whose
+        tile checkboxes cannot be ticked -- which is the whole reason the reduce
+        panel is open.
+      -->
+      @if (showSearch() || (showReduce() && store.isLastBlock())) {
+        <aside class="side">
+          @if (showSearch()) {
+            <ks-search-panel [blocks]="blocks()" (resultPicked)="onSearchResult($event)" />
+          }
+          @if (showReduce() && store.isLastBlock()) {
+            <ks-reduce-panel [channels]="channels()" [leans]="leans()" />
+          }
+        </aside>
+      }
+    </div>
+  }
+</section>

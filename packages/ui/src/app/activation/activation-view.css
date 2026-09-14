@@ -1,0 +1,197 @@
+/* The host is the grid row; without an explicit height its child's 100% has
+   nothing to resolve against and the grid grows past the viewport, pushing the
+   detail pane off screen. */
+:host {
+  display: block;
+  height: 100%;
+  min-height: 0;
+}
+
+.view {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  height: 100%;
+  min-height: 0;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--ks-border);
+}
+
+.controls__spacer {
+  flex: 1;
+}
+
+.controls__open,
+.controls__close {
+  padding: 5px 10px;
+  font: inherit;
+  font-size: 12px;
+  color: var(--ks-text);
+  background: var(--ks-surface-raised);
+  border: 1px solid var(--ks-border);
+  border-radius: var(--ks-radius);
+  cursor: pointer;
+}
+
+.controls__open:hover:not(:disabled),
+.controls__close:hover {
+  border-color: var(--ks-accent);
+}
+
+.controls__open:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.controls__capture {
+  font-size: 12px;
+  font-family: var(--ks-font-mono);
+  color: var(--ks-text-muted);
+}
+
+.control {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--ks-text-muted);
+  user-select: none;
+  cursor: pointer;
+}
+
+.control input[type='checkbox'],
+.control input[type='range'] {
+  accent-color: var(--ks-accent);
+}
+
+.control--select select {
+  font: inherit;
+  font-size: 12px;
+  color: var(--ks-text);
+  background: var(--ks-surface-raised);
+  border: 1px solid var(--ks-border);
+  border-radius: var(--ks-radius);
+  padding: 2px 4px;
+}
+
+.control--select select option:disabled {
+  color: var(--ks-text-muted);
+}
+
+.control--slider input[type='range'] {
+  width: 110px;
+}
+
+.control__value {
+  font-family: var(--ks-font-mono);
+  font-variant-numeric: tabular-nums;
+  min-width: 3ch;
+  text-align: right;
+}
+
+.notice {
+  margin: 12px 14px;
+  padding: 8px 12px;
+  font-size: 12px;
+  background: var(--ks-surface);
+  border: 1px solid var(--ks-border);
+  border-left-width: 3px;
+  border-radius: var(--ks-radius);
+  color: var(--ks-text-muted);
+}
+
+.notice--warn {
+  border-left-color: var(--ks-warn);
+}
+
+.body {
+  display: grid;
+  /*
+    Rail, grid, search panel. The third column is declared whether or not the
+    panel is mounted: an absent grid item leaves its track empty rather than
+    shifting the others, so opening the panel cannot re-column the rail.
+  */
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  min-height: 0;
+}
+
+.side {
+  display: flex;
+  flex-direction: column;
+  width: 400px;
+  min-height: 0;
+  overflow: auto;
+}
+
+ks-search-panel,
+ks-reduce-panel {
+  flex: 0 0 auto;
+  min-height: 0;
+}
+
+.main {
+  display: grid;
+  /*
+    Status, grid, detail drawer, reduce panel. The grid row is the only
+    flexible one and is named by position, so a new row must be added here as
+    well as in the template -- `auto` for anything that sizes to its content.
+  */
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 6px 12px;
+  font-size: 11px;
+  font-family: var(--ks-font-mono);
+  color: var(--ks-text-muted);
+  border-bottom: 1px solid var(--ks-border);
+}
+
+.status__note--bad {
+  color: var(--ks-error);
+}
+
+.control--moves {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.control__step {
+  min-width: 22px;
+  padding: 1px 6px;
+  font: inherit;
+  line-height: 1.2;
+  color: var(--ks-text);
+  background: var(--ks-surface-raised);
+  border: 1px solid var(--ks-border);
+  border-radius: var(--ks-radius);
+  cursor: pointer;
+}
+
+.control__step:hover:not(:disabled) {
+  border-color: var(--ks-accent);
+}
+
+.control__step:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.control__moves {
+  font-variant-numeric: tabular-nums;
+  color: var(--ks-text-dim);
+}

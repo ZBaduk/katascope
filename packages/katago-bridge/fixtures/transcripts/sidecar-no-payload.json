@@ -1,0 +1,15 @@
+{
+  "$comment": "A frame reply that forgets its binary payload entirely.",
+  "steps": [
+    {
+      "expect": { "type": "describe" },
+      "reply": {
+        "ok": true,
+        "network": { "name": "tiny-b2c2", "blocks": 2, "channels": 2, "boardXSize": 2, "boardYSize": 2 },
+        "maxMoveNumber": 40,
+        "dtype": "float32"
+      }
+    },
+    { "reply": { "ok": true, "dtype": "float32", "min": 0.0, "max": 1.0 } }
+  ]
+}

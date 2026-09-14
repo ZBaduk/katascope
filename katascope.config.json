@@ -1,12 +1,10 @@
 {
   "$comment": "Checked-in defaults. Copy to katascope.config.local.json (gitignored) and point the paths at your own KataGo install, then set useFakes to false.",
-
   "useFakes": true,
-
   "katagoPath": "katago",
   "modelPath": "",
+  "checkpointPath": "",
   "katagoConfigPath": "",
-
   "pythonPath": "python3",
-  "sidecarPath": "sidecar/activations.py"
+  "sidecarPath": "tools/activation-service/serve.py"
 }

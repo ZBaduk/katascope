@@ -12,6 +12,7 @@ export type {
   AnalysisEngine,
   AnalysisQuery,
   AnalysisResult,
+  EngineState,
   MoveAnalysis,
   RootAnalysis,
 } from './analysis/analysis-engine.js';
@@ -20,7 +21,9 @@ export type { KataGoAnalysisEngineOptions } from './analysis/katago-analysis-eng
 export { FakeAnalysisEngine } from './analysis/fake-analysis-engine.js';
 export type { FakeAnalysisEngineOptions } from './analysis/fake-analysis-engine.js';
 
-export { decodePlanes, SidecarActivationStore } from './activations/sidecar-activation-store.js';
+export { SidecarActivationStore } from './activations/sidecar-activation-store.js';
+export { fileByteSource } from './activations/file-byte-source.js';
+export type { FileByteSource } from './activations/file-byte-source.js';
 export type { SidecarActivationStoreOptions } from './activations/sidecar-activation-store.js';
 export { SidecarProtocolError } from './activations/sidecar-protocol.js';
 export type {
@@ -28,8 +31,11 @@ export type {
   DescribeResponse,
   FrameRequest,
   FrameResponse,
+  HeadsRequest,
+  HeadsResponse,
   SidecarErrorResponse,
   SidecarNetwork,
+  SidecarPosition,
   SidecarRequest,
 } from './activations/sidecar-protocol.js';
 
@@ -37,3 +43,6 @@ export { checkConfigPaths, CONFIG_FILENAMES, loadConfig, resolvePaths } from './
 
 export { LineProcess, ProcessExitError } from './process/line-process.js';
 export type { LineProcessOptions } from './process/line-process.js';
+
+export { FramedProcess, FramedProcessExitError } from './process/framed-process.js';
+export type { FramedMessage, FramedProcessOptions } from './process/framed-process.js';

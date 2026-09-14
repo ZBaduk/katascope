@@ -1,0 +1,19 @@
+{
+  "$comment": "A 2-block, 2-channel toy net: one block:0 vector plus the two head vectors.",
+  "steps": [
+    {
+      "expect": { "type": "describe" },
+      "reply": {
+        "ok": true,
+        "network": { "name": "tiny-b2c2", "blocks": 2, "channels": 2, "boardXSize": 2, "boardYSize": 2 },
+        "maxMoveNumber": 40,
+        "dtype": "float32"
+      }
+    },
+    {
+      "expect": { "type": "reader_weights" },
+      "reply": { "ok": true, "dtype": "float32", "channels": 2, "vectors": ["block:0", "head:policy", "head:value"] },
+      "binaryFloat32": [1.5, 0.5, 9.0, 1.0, 1.0, 9.0]
+    }
+  ]
+}

@@ -1,0 +1,176 @@
+{
+  "$comment": "Positions for the golden test. Deliberately few and deliberately varied -- each one is a different way the feature encoding can be wrong. Moves are GTP coordinates, the same encoding katascope sends on the wire.",
+  "positions": [
+    {
+      "name": "empty-19x19",
+      "why": "Baseline. A symmetric position: a transposed board or a flipped axis still looks plausible here, but the policy must be symmetric, which nothing else checks.",
+      "boardXSize": 19,
+      "boardYSize": 19,
+      "rules": "chinese",
+      "komi": 7.5,
+      "initialStones": [],
+      "moves": [],
+      "initialPlayer": "B"
+    },
+    {
+      "name": "opening-4-moves",
+      "why": "Asymmetric corners. Catches a transposed board and an x/y swap in the coordinate conversion.",
+      "boardXSize": 19,
+      "boardYSize": 19,
+      "rules": "chinese",
+      "komi": 7.5,
+      "initialStones": [],
+      "moves": [
+        [
+          "B",
+          "Q16"
+        ],
+        [
+          "W",
+          "D4"
+        ],
+        [
+          "B",
+          "Q4"
+        ],
+        [
+          "W",
+          "C16"
+        ]
+      ],
+      "initialPlayer": "B"
+    },
+    {
+      "name": "handicap-4-setup-stones",
+      "why": "initialStones rather than moves, and White to play first. Catches a side-to-move error and setup stones being dropped.",
+      "boardXSize": 19,
+      "boardYSize": 19,
+      "rules": "chinese",
+      "komi": 0.5,
+      "initialStones": [
+        [
+          "B",
+          "D4"
+        ],
+        [
+          "B",
+          "D16"
+        ],
+        [
+          "B",
+          "Q4"
+        ],
+        [
+          "B",
+          "Q16"
+        ]
+      ],
+      "moves": [],
+      "initialPlayer": "W"
+    },
+    {
+      "name": "with-passes",
+      "why": "Passes must advance the move history without placing a stone. Catches history planes being built from the stone list instead of the move list. The pass is followed by a real move on purpose -- a trailing pass puts the position one pass from game end, where KataGo hides history by design (see pass-would-end-game).",
+      "boardXSize": 19,
+      "boardYSize": 19,
+      "rules": "chinese",
+      "komi": 7.5,
+      "initialStones": [],
+      "moves": [
+        [
+          "B",
+          "Q16"
+        ],
+        [
+          "W",
+          "pass"
+        ],
+        [
+          "B",
+          "D4"
+        ],
+        [
+          "W",
+          "R4"
+        ]
+      ],
+      "initialPlayer": "B"
+    },
+    {
+      "name": "small-9x9",
+      "why": "A board size the trunk was probably not trained at most often, and a different plane_area. Catches hardcoded 19s.",
+      "boardXSize": 9,
+      "boardYSize": 9,
+      "rules": "chinese",
+      "komi": 7.0,
+      "initialStones": [],
+      "moves": [
+        [
+          "B",
+          "E5"
+        ],
+        [
+          "W",
+          "G3"
+        ],
+        [
+          "B",
+          "C3"
+        ]
+      ],
+      "initialPlayer": "B"
+    },
+    {
+      "name": "rectangular-13x9",
+      "why": "Non-square. Catches board_x/board_y being used interchangeably, which a square board can never reveal.",
+      "boardXSize": 13,
+      "boardYSize": 9,
+      "rules": "chinese",
+      "komi": 3.5,
+      "initialStones": [],
+      "moves": [
+        [
+          "B",
+          "D6"
+        ],
+        [
+          "W",
+          "K6"
+        ],
+        [
+          "B",
+          "D3"
+        ]
+      ],
+      "initialPlayer": "B"
+    },
+    {
+      "name": "pass-would-end-game",
+      "why": "A trailing pass, so a pass by the side to move would end the game. KataGo sets maxTurnsOfHistoryToInclude = 0 here on purpose, hiding the history from the net; KataGo's Python Features has no equivalent. Excluded from the tight comparison and covered by its own test.",
+      "boardXSize": 19,
+      "boardYSize": 19,
+      "rules": "chinese",
+      "komi": 7.5,
+      "initialStones": [],
+      "moves": [
+        [
+          "B",
+          "Q16"
+        ],
+        [
+          "W",
+          "pass"
+        ],
+        [
+          "B",
+          "D4"
+        ],
+        [
+          "W",
+          "pass"
+        ]
+      ],
+      "initialPlayer": "B"
+    }
+  ]
+}

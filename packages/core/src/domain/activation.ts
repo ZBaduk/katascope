@@ -10,6 +10,8 @@
 import type { BoardSize } from './board.js';
 import { boardArea } from './board.js';
 import type { NetworkSpec } from './network-spec.js';
+import type { Attribution, AttributionRequest, ReaderWeights } from './attribution.js';
+import type { HeadWeights } from '../heads/head-weights.js';
 
 /**
  * Element type of a frame's buffer. `float32` carries raw activations;
@@ -67,6 +69,27 @@ export interface ActivationStore {
   describe(): Promise<ActivationAvailability>;
   /** All channels of `key`. Rejects if the key is out of range. */
   frame(key: ActivationKey): Promise<ActivationFrame>;
+  /**
+   * Static, weight-based channel importance.
+   *
+   * Optional: a `.kact` capture holds stored planes and has no weights to
+   * measure, so callers must degrade rather than assume.
+   */
+  readerWeights?(): Promise<ReaderWeights>;
+  /**
+   * Gradient-based attribution of one output to every channel.
+   *
+   * Optional for the same reason as `readerWeights`, and additionally because
+   * it needs a live model: a capture cannot be differentiated.
+   */
+  attribute?(request: AttributionRequest): Promise<Attribution>;
+  /**
+   * Both output heads' parameters, for re-running them on an altered trunk.
+   *
+   * Optional for the same reason as the others: a capture holds stored planes
+   * and carries no weights, so a caller must degrade rather than assume.
+   */
+  headWeights?(): Promise<HeadWeights>;
   /** Releases any underlying process or handle. Safe to call more than once. */
   dispose(): Promise<void>;
 }

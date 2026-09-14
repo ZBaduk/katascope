@@ -7,6 +7,11 @@
  * builds on expects a single response per id, so `analyze` sends exactly one
  * turn per query. Batching several turns would need a multi-response
  * correlator, and no caller needs it yet.
+ *
+ * Lifecycle: the engine is started lazily and can be restarted in place. A
+ * crashed engine leaves this object usable -- `restart()` replaces the process
+ * and the caller keeps its reference. That matters because the bridge hands
+ * this object to the IPC layer once, at startup.
  */
 
 import { moveToAnalysisPair, vertexToGtp, type BoardSize, type SetupStone } from '@katascope/core';
@@ -16,75 +21,140 @@ import type {
   AnalysisEngine,
   AnalysisQuery,
   AnalysisResult,
+  EngineState,
   MoveAnalysis,
   RootAnalysis,
 } from './analysis-engine.js';
 
 export interface KataGoAnalysisEngineOptions {
-  /** Path to the `katago` executable. */
   readonly katagoPath: string;
-  /** Path to the network file. */
   readonly modelPath: string;
-  /** Path to the analysis `.cfg`. */
   readonly configPath: string;
   /** Milliseconds a single query may take. Defaults to 120_000 -- search is slow. */
   readonly timeoutMs?: number;
-  /** Called with each stderr line, for the Diagnostics log. */
   readonly onLog?: (line: string) => void;
+  /**
+   * How many times to relaunch after an unexpected exit before giving up.
+   * Defaults to 0: restarts are explicit. A dev tool that silently respawns a
+   * crashing engine hides the crash.
+   */
+  readonly maxAutoRestarts?: number;
 }
 
 export class KataGoAnalysisEngine implements AnalysisEngine {
   readonly #options: KataGoAnalysisEngineOptions;
-  readonly #process: LineProcess;
-  readonly #correlator: RequestCorrelator;
+  #process: LineProcess | undefined;
+  #correlator: RequestCorrelator | undefined;
   #started: Promise<void> | undefined;
+  #state: EngineState = 'stopped';
+  #autoRestartsUsed = 0;
+  #disposed = false;
 
   constructor(options: KataGoAnalysisEngineOptions) {
     this.#options = options;
-    this.#process = new LineProcess({
-      command: options.katagoPath,
-      args: ['analysis', '-model', options.modelPath, '-config', options.configPath],
-      ...(options.onLog === undefined ? {} : { onStderr: options.onLog }),
-    });
-    this.#correlator = new RequestCorrelator(this.#process, {
-      timeoutMs: options.timeoutMs ?? 120_000,
-    });
+  }
+
+  get state(): EngineState {
+    return this.#state;
   }
 
   start(): Promise<void> {
-    this.#started ??= this.#process.start().then(() => {
-      this.#correlator.attach();
-    });
+    if (this.#disposed) return Promise.reject(new Error('analysis engine disposed'));
+    this.#started ??= this.#launch();
     return this.#started;
   }
 
+  async restart(): Promise<void> {
+    if (this.#disposed) throw new Error('analysis engine disposed');
+    await this.#teardown(new Error('analysis engine restarting'));
+    this.#autoRestartsUsed = 0;
+    this.#started = this.#launch();
+    await this.#started;
+  }
+
   async version(): Promise<string> {
-    await this.start();
-    const response = await this.#correlator.request({ action: 'query_version' });
-    throwIfError(response);
+    const response = await this.#request({ action: 'query_version' });
     const version = response['version'];
     return typeof version === 'string' ? version : 'unknown';
   }
 
   async analyze(query: AnalysisQuery): Promise<AnalysisResult> {
-    await this.start();
-    const response = await this.#correlator.request(toKataGoQuery(query));
-    throwIfError(response);
+    const response = await this.#request(toKataGoQuery(query));
     return toAnalysisResult(response, query.turnNumber);
   }
 
   async dispose(): Promise<void> {
-    this.#correlator.rejectAll(new Error('analysis engine disposed'));
-    await this.#process.stop();
+    this.#disposed = true;
+    await this.#teardown(new Error('analysis engine disposed'));
   }
 
   /** Recent stderr, surfaced in Diagnostics when a start fails. */
   get log(): string {
-    return this.#process.stderrTail;
+    return this.#process?.stderrTail ?? '';
   }
 
   get modelPath(): string {
     return this.#options.modelPath;
+  }
+
+  async #launch(): Promise<void> {
+    this.#state = 'starting';
+    const process = new LineProcess({
+      command: this.#options.katagoPath,
+      args: ['analysis', '-model', this.#options.modelPath, '-config', this.#options.configPath],
+      ...(this.#options.onLog === undefined ? {} : { onStderr: this.#options.onLog }),
+    });
+    const correlator = new RequestCorrelator(process, {
+      timeoutMs: this.#options.timeoutMs ?? 120_000,
+    });
+    this.#process = process;
+    this.#correlator = correlator;
+
+    try {
+      await process.start();
+    } catch (error) {
+      this.#state = 'failed';
+      throw error;
+    }
+    correlator.attach();
+    this.#state = 'ready';
+  }
+
+  /**
+   * Sends one request, relaunching first if the engine died and auto-restart
+   * is enabled. A request is never retried across a restart: search results
+   * are not idempotent enough to replay behind the caller's back.
+   */
+  async #request(payload: Record<string, unknown>): Promise<JsonLine> {
+    await this.start();
+
+    if (this.#process?.exitError !== undefined) {
+      this.#state = 'failed';
+      if (this.#autoRestartsUsed >= (this.#options.maxAutoRestarts ?? 0)) {
+        throw this.#process.exitError;
+      }
+      this.#autoRestartsUsed++;
+      const previous = this.#process.exitError;
+      await this.#teardown(previous);
+      this.#started = this.#launch();
+      await this.#started;
+    }
+
+    const correlator = this.#correlator;
+    if (correlator === undefined) throw new Error('analysis engine is not running');
+    const response = await correlator.request(payload);
+    throwIfError(response);
+    return response;
+  }
+
+  async #teardown(reason: Error): Promise<void> {
+    this.#correlator?.rejectAll(reason);
+    const process = this.#process;
+    this.#process = undefined;
+    this.#correlator = undefined;
+    this.#started = undefined;
+    this.#state = 'stopped';
+    await process?.stop();
   }
 }
 
@@ -98,8 +168,27 @@ export function toKataGoQuery(query: AnalysisQuery): Record<string, unknown> {
     initialStones: query.initialStones.map((stone) => encodeStone(query.boardSize, stone)),
     moves: query.moves.map((move) => moveToAnalysisPair(query.boardSize, move)),
     analyzeTurns: [query.turnNumber],
+    ...(query.initialPlayer === undefined ? {} : { initialPlayer: query.initialPlayer }),
     maxVisits: query.maxVisits,
-    includePolicy: false,
+    includePolicy: query.includePolicy ?? false,
+    includeOwnership: query.includeOwnership ?? false,
+    // The komi we send must be the komi the network sees. Chinese rules carry
+    // whiteHandicapBonus=N, which silently adds the handicap stone count to
+    // White's komi -- a 4-point shift on a 4-stone game, and enough to make the
+    // engine and the activation service disagree about the position.
+    whiteHandicapBonus: '0',
+    overrideSettings: {
+      // The analysis engine defaults this to TRUE, which evaluates the root with
+      // maxHistory = 0 -- no history planes at all, however many moves the query
+      // supplied. The activation service always encodes the history it is given,
+      // so leaving this on makes the board overlays and the activation heatmaps
+      // describe different positions.
+      //
+      // Sent per query rather than left to `katagoConfigPath`: the config is the
+      // user's file and may be KataGo's stock analysis_example.cfg, where the
+      // default applies. This makes the guarantee ours.
+      ignorePreRootHistory: false,
+    },
   };
 }
 
@@ -131,7 +220,22 @@ export function toAnalysisResult(line: JsonLine, fallbackTurn: number): Analysis
       pv: Array.isArray(info?.['pv']) ? info['pv'].filter((p): p is string => typeof p === 'string') : [],
     });
   }
-  return { turnNumber: numberOr(line['turnNumber'], fallbackTurn), rootInfo: root, moveInfos };
+
+  const policy = numberArrayOrUndefined(line['policy']);
+  const ownership = numberArrayOrUndefined(line['ownership']);
+  return {
+    turnNumber: numberOr(line['turnNumber'], fallbackTurn),
+    rootInfo: root,
+    moveInfos,
+    // exactOptionalPropertyTypes: omit the key rather than set it undefined.
+    ...(policy === undefined ? {} : { policy }),
+    ...(ownership === undefined ? {} : { ownership }),
+  };
+}
+
+function numberArrayOrUndefined(value: unknown): readonly number[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  return value.filter((v): v is number => typeof v === 'number' && Number.isFinite(v));
 }
 
 function throwIfError(line: JsonLine): void {

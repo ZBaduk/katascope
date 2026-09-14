@@ -1,0 +1,18 @@
+{
+  "$comment": "Claims planes but sends only the per-channel totals.",
+  "steps": [
+    {
+      "expect": { "type": "describe" },
+      "reply": {
+        "ok": true,
+        "network": { "name": "tiny-b2c2", "blocks": 2, "channels": 2, "boardXSize": 2, "boardYSize": 2 },
+        "maxMoveNumber": 40,
+        "dtype": "float32"
+      }
+    },
+    {
+      "reply": { "ok": true, "dtype": "float32", "blocks": 2, "channels": 2, "planeBlock": 0, "planeShape": [2, 2, 2] },
+      "binaryFloat32": [1, 2, 3, 4]
+    }
+  ]
+}

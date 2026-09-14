@@ -1,0 +1,6 @@
+{
+  "stderrOnStart": ["Started, ready to begin handling requests"],
+  "steps": [
+    { "reply": { "error": "Unknown rules", "field": "rules" } }
+  ]
+}

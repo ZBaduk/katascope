@@ -50,21 +50,33 @@ export async function loadConfig(directory: string): Promise<ConfigStatus> {
   return { config: DEFAULT_CONFIG, problems: [] };
 }
 
-/** Makes every path in a config absolute, except bare command names on PATH. */
+/**
+ * Makes the paths in a config absolute, relative to the config's own directory.
+ *
+ * Commands and files are treated differently on purpose. A bare `katago` or
+ * `python3` means "find it on PATH", so it is left alone. A bare `model.bin.gz`
+ * means the file sitting next to the config -- resolving it against PATH would
+ * be meaningless, and leaving it relative would resolve it against the
+ * process's working directory, which is wherever Electron happened to start.
+ */
 export function resolvePaths(config: KatascopeConfig, directory: string): KatascopeConfig {
-  const absolutise = (value: string): string => {
+  const command = (value: string): string => {
     if (value === '' || isAbsolute(value)) return value;
-    // A bare name like "python3" or "katago" is a PATH lookup; leave it alone.
+    // No separator: a PATH lookup, not a path.
     if (!value.includes('/') && !value.includes('\\')) return value;
     return resolve(directory, value);
   };
+  const file = (value: string): string =>
+    value === '' || isAbsolute(value) ? value : resolve(directory, value);
+
   return {
     ...config,
-    katagoPath: absolutise(config.katagoPath),
-    modelPath: absolutise(config.modelPath),
-    katagoConfigPath: absolutise(config.katagoConfigPath),
-    pythonPath: absolutise(config.pythonPath),
-    sidecarPath: absolutise(config.sidecarPath),
+    katagoPath: command(config.katagoPath),
+    pythonPath: command(config.pythonPath),
+    modelPath: file(config.modelPath),
+    checkpointPath: file(config.checkpointPath),
+    katagoConfigPath: file(config.katagoConfigPath),
+    sidecarPath: file(config.sidecarPath),
   };
 }
 
@@ -74,7 +86,7 @@ export function resolvePaths(config: KatascopeConfig, directory: string): Katasc
  */
 export async function checkConfigPaths(config: KatascopeConfig): Promise<readonly ConfigProblem[]> {
   if (config.useFakes) return [];
-  const fields = ['modelPath', 'katagoConfigPath', 'sidecarPath'] as const;
+  const fields = ['modelPath', 'checkpointPath', 'katagoConfigPath', 'sidecarPath'] as const;
   const problems: ConfigProblem[] = [];
   await Promise.all(
     fields.map(async (field) => {

@@ -5,3 +5,12 @@ out/
 .angular/
 .DS_Store
 katascope.config.local.json
+tools/activation-service/.venv/
+__pycache__/
+*.pyc
+
+# KataGo writes these under whatever directory the engine was started in.
+analysis_logs/
+
+# JetBrains project files.
+.idea/

@@ -1,0 +1,8 @@
+(;GM[1]FF[4]CA[UTF-8]SZ[19]KM[6.5]
+C[Two variations after move 2. The main line is always the first
+child, so the projected GameRecord is pd, dp, pp, dd.]
+;B[pd]
+;W[dp]
+(;B[pp];W[dd]C[Main line.])
+(;B[dd];W[pp]C[Variation: Black takes the other corner.])
+)

@@ -1,0 +1,26 @@
+{
+  "stderrOnStart": ["Started, ready to begin handling requests"],
+  "steps": [
+    {
+      "expect": {
+        "boardXSize": 19,
+        "boardYSize": 19,
+        "rules": "chinese",
+        "komi": 7.5,
+        "analyzeTurns": [2],
+        "maxVisits": 64,
+        "moves": [["B", "Q16"], ["W", "D4"]],
+        "initialStones": [["B", "D16"]]
+      },
+      "reply": {
+        "turnNumber": 2,
+        "rootInfo": { "winrate": 0.4831, "scoreLead": -1.25, "visits": 64 },
+        "moveInfos": [
+          { "move": "Q4", "visits": 31, "winrate": 0.5102, "scoreLead": 0.8, "prior": 0.2431, "order": 0, "pv": ["Q4", "D16", "R14"] },
+          { "move": "D16", "visits": 18, "winrate": 0.4977, "scoreLead": 0.1, "prior": 0.1902, "order": 1, "pv": ["D16", "Q4"] },
+          { "move": "pass", "visits": 1, "winrate": 0.1, "scoreLead": -20.0, "prior": 0.0001, "order": 2, "pv": ["pass"] }
+        ]
+      }
+    }
+  ]
+}

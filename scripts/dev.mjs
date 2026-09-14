@@ -18,6 +18,7 @@
  */
 
 import { spawn } from 'node:child_process';
+import { rm } from 'node:fs/promises';
 import { setTimeout as delay } from 'node:timers/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -66,6 +67,23 @@ function watchLibraries() {
   for (const workspace of ['@katascope/core', '@katascope/katago-bridge']) {
     run('npm', ['run', 'watch', '--workspace', workspace], { name: `tsc ${workspace}` });
   }
+}
+
+/**
+ * Drops Vite's pre-bundled copy of the workspace libraries.
+ *
+ * `ng serve` pre-bundles `@katascope/*` out of their `dist/`, and keys that
+ * cache on manifests -- `package.json`, the lockfile -- not on the contents of
+ * `dist/`. But `tsc --watch` rewrites `dist/` continuously, so adding an export
+ * to `core` leaves Vite serving a pre-bundle that predates it. The renderer
+ * then dies on `does not provide an export named ...` as it loads a lazy route,
+ * which surfaces as tabs that render nothing at all, and only in dev -- the
+ * built app never goes through the optimiser.
+ *
+ * Re-optimising costs about a second. A stale cache costs an afternoon.
+ */
+async function clearRendererDepCache() {
+  await rm(resolve(root, 'packages/ui/.angular/cache'), { recursive: true, force: true });
 }
 
 function serveRenderer() {
@@ -175,6 +193,7 @@ for (const signal of ['SIGINT', 'SIGTERM']) {
 
 try {
   await buildLibraries();
+  await clearRendererDepCache();
   watchLibraries();
   serveRenderer();
   await watchDesktop();

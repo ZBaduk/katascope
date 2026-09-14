@@ -1,0 +1,237 @@
+<section class="page">
+  <header class="toolbar">
+    <button type="button" class="toolbar__open" (click)="openSgf()" [disabled]="!connected || opening()">
+      {{ opening() ? 'Opening…' : 'Open SGF…' }}
+    </button>
+    <button type="button" class="toolbar__open" (click)="newGame()" [disabled]="!connected">
+      New game
+    </button>
+
+    @if (gameSummary(); as summary) {
+      <span class="toolbar__game" data-testid="game-summary">{{ summary }}</span>
+    } @else {
+      <span class="toolbar__game toolbar__game--empty">No game loaded</span>
+    }
+
+    <div class="toolbar__spacer"></div>
+
+    <label class="toggle">
+      <input type="checkbox" [checked]="showOwnership()" (change)="toggleOwnership()" />
+      Ownership
+    </label>
+    <label class="toggle">
+      <input type="checkbox" [checked]="showPolicy()" (change)="togglePolicy()" />
+      Policy
+    </label>
+    @if (showPolicy()) {
+      <label class="toggle toggle--select">
+        Top
+        <select (change)="setTopN(+$any($event.target).value)" aria-label="Top policy moves">
+          @for (choice of topNChoices; track choice) {
+            <option [value]="choice" [selected]="choice === topN()">{{ choice }}</option>
+          }
+        </select>
+      </label>
+    }
+    <label class="toggle">
+      <input type="checkbox" [checked]="showCoordinates()" (change)="toggleCoordinates()" />
+      Coordinates
+    </label>
+
+    <label class="toggle toggle--select" title="What clicking an intersection does">
+      Click
+      <select
+        [value]="pickTarget()"
+        (change)="setPickTarget($any($event.target).value)"
+        aria-label="Click action"
+      >
+        <option value="off" [selected]="pickTarget() === 'off'">go to move</option>
+        <option value="ownership" [selected]="pickTarget() === 'ownership'">attribute ownership</option>
+        <option value="policy" [selected]="pickTarget() === 'policy'">attribute policy</option>
+        <option value="region" [selected]="pickTarget() === 'region'">select region</option>
+        <option value="play" [selected]="pickTarget() === 'play'">play a stone</option>
+      </select>
+    </label>
+  </header>
+
+  @if (connected) {
+    <!--
+      Playing against the reduced head. The selection it plays with lives on the
+      Diagnostics tab, so the bar names it -- otherwise "the net played badly"
+      is unattributable to any particular set of channels.
+    -->
+    <div class="playbar" data-testid="playbar">
+      <label class="toggle toggle--select" title="Which colours the reduced network plays">
+        Net plays
+        <select
+          [value]="playSession.side()"
+          (change)="setNetSide($any($event.target).value)"
+          aria-label="Network side"
+        >
+          <option value="off" [selected]="playSession.side() === 'off'">off</option>
+          <option value="black" [selected]="playSession.side() === 'black'">black</option>
+          <option value="white" [selected]="playSession.side() === 'white'">white</option>
+          <option value="both" [selected]="playSession.side() === 'both'">both (self-play)</option>
+        </select>
+      </label>
+
+      @if (playSession.running()) {
+        <button type="button" class="playbar__run" (click)="playSession.stop()" data-testid="play-stop">
+          Stop
+        </button>
+      } @else {
+        <button
+          type="button"
+          class="playbar__run"
+          [disabled]="!playSession.canPlay() || playSession.side() === 'off'"
+          (click)="playSession.start()"
+          data-testid="play-start"
+        >
+          Play
+        </button>
+      }
+      <button
+        type="button"
+        class="playbar__run"
+        [disabled]="!playSession.canPlay() || !playSession.netToPlay() || playSession.running()"
+        (click)="playSession.step()"
+        data-testid="play-step"
+      >
+        One move
+      </button>
+      <button
+        type="button"
+        class="playbar__run"
+        [disabled]="!store.hasGame() || playSession.running()"
+        (click)="passHere()"
+      >
+        Pass
+      </button>
+
+      <label class="toggle toggle--slider" title="Pause between the network's moves">
+        Delay
+        <input
+          type="range"
+          min="0"
+          max="2000"
+          step="50"
+          [value]="playSession.delayMs()"
+          (input)="playSession.setDelay(+$any($event.target).value)"
+          aria-label="Move delay"
+        />
+        <span class="playbar__value">{{ playSession.delayMs() }}ms</span>
+      </label>
+
+      <label class="toggle" title="Stop the network filling its own eyes once the game is settled">
+        <input
+          type="checkbox"
+          [checked]="playSession.avoidEyes()"
+          (change)="playSession.setAvoidEyes(!playSession.avoidEyes())"
+        />
+        Keep eyes
+      </label>
+
+      <span class="playbar__status" data-testid="play-status">
+        {{ reduceSummary() }}
+        @if (playSession.played() > 0) {
+          · {{ playSession.played() }} move{{ playSession.played() === 1 ? '' : 's' }} played
+        }
+        @switch (playSession.state()) {
+          @case ('thinking') {
+            · thinking…
+          }
+          @case ('finished') {
+            · game over — both players passed
+          }
+          @case ('capped') {
+            · stopped at the {{ playSession.maxMoves }}-move limit
+          }
+          @case ('error') {
+            · <span class="playbar__status--bad">{{ playSession.error() }}</span>
+          }
+        }
+      </span>
+    </div>
+  }
+
+  @if (playError(); as error) {
+    <p class="notice notice--error" data-testid="play-error">{{ error }}</p>
+  }
+
+  @if (!connected) {
+    <p class="notice notice--warn">
+      Not running under Electron, so there is no bridge to load a game through. Start the desktop app
+      with <code>npm run dev</code>.
+    </p>
+  } @else if (usingFakeEngine()) {
+    <p class="notice notice--fake" data-testid="fake-banner">
+      <strong>Fake data.</strong> No KataGo is configured, so the overlays below are synthetic and
+      mean nothing. Set <code>useFakes: false</code> and point
+      <code>katagoPath</code>/<code>modelPath</code> at a real install to see real analysis.
+    </p>
+  }
+
+  @if (openError(); as error) {
+    <p class="notice notice--error">{{ error }}</p>
+  }
+
+  <div class="board-area">
+    <ks-board-canvas
+      [board]="store.board()"
+      [size]="boardSize()"
+      [lastMove]="store.lastPlayedMove()"
+      [showCoordinates]="showCoordinates()"
+      [ownership]="ownership()"
+      [policyMoves]="policyMoves()"
+      [region]="store.searchRegion()"
+      (vertexClicked)="onVertexClicked($event)"
+    />
+  </div>
+
+  @if (regionLabel(); as label) {
+    <p class="notice notice--target" data-testid="board-region">
+      Search region ({{ store.searchRegion().length }}):
+      <strong>{{ label }}</strong> — search it on the Diagnostics tab.
+      <button type="button" class="notice__clear" (click)="clearRegion()">clear</button>
+    </p>
+  } @else if (pickTarget() === 'region') {
+    <p class="notice notice--target" data-testid="board-region">
+      Click intersections to build a search region; click one again to remove it.
+    </p>
+  }
+
+  @if (targetLabel(); as label) {
+    <p class="notice notice--target" data-testid="board-target">
+      Attribution target: <strong>{{ label }}</strong> — shown on the Diagnostics tab.
+      <button type="button" class="notice__clear" (click)="clearTarget()">clear</button>
+    </p>
+  }
+
+  <footer class="footer">
+    <ks-move-navigator />
+
+    @if (wantsAnalysis()) {
+      <span class="status" data-testid="analysis-status">
+        @switch (store.analysisState()) {
+          @case ('loading') {
+            <span class="status__dot status__dot--busy"></span> analysing…
+          }
+          @case ('error') {
+            <span class="status__dot status__dot--bad"></span> {{ store.analysisError() }}
+          }
+          @case ('ready') {
+            @if (store.analysis(); as result) {
+              <span class="status__dot status__dot--ok"></span>
+              winrate {{ (result.winrate * 100).toFixed(1) }}% · lead
+              {{ result.scoreLead > 0 ? '+' : '' }}{{ result.scoreLead.toFixed(1) }} ·
+              {{ result.visits }} visit{{ result.visits === 1 ? '' : 's' }}
+            }
+          }
+          @default {
+            <span class="status__dot"></span> idle
+          }
+        }
+      </span>
+    }
+  </footer>
+</section>

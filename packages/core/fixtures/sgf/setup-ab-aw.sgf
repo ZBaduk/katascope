@@ -1,0 +1,8 @@
+(;GM[1]FF[4]CA[UTF-8]SZ[19]KM[7.5]
+C[Life-and-death problem. Uses AB/AW setup plus a compressed
+rectangle \[bb:bd\] to place three white stones in one property.]
+PL[B]
+AB[cc][cd][ce][dc][ec][fd]
+AW[bb:bd][db][eb][fb][gc][gd]
+AE[aa]
+;B[be];W[ba];B[ca])

@@ -71,7 +71,8 @@ function createLiveBridge(config: KatascopeConfig, options: BridgeOptions): Brid
   const activationStore = new SidecarActivationStore({
     pythonPath: config.pythonPath,
     sidecarPath: config.sidecarPath,
-    modelPath: config.modelPath,
+    // The service loads the torch checkpoint, not the C++ engine's model file.
+    modelPath: config.checkpointPath,
     ...(options.onLog === undefined ? {} : { onLog: (line) => options.onLog?.('sidecar', line) }),
   });
 

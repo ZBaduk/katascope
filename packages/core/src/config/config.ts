@@ -9,8 +9,22 @@
 export interface KatascopeConfig {
   /** Absolute path to the `katago` executable. */
   readonly katagoPath: string;
-  /** Absolute path to the model file (`.bin.gz` / `.txt.gz`). */
+  /**
+   * Model file for the **C++ engine** (`.bin.gz` / `.txt.gz`).
+   *
+   * Not the same artefact as `checkpointPath`: this is the serialisation the
+   * analysis engine reads, and KataGo's Python code cannot load it.
+   */
   readonly modelPath: string;
+  /**
+   * Training checkpoint (`.ckpt`) for the **activation service**.
+   *
+   * KataGo's `model_pytorch` loads checkpoints, not `.bin.gz`; the conversion
+   * only runs the other way. Get one from the `model_zip_file` of a network on
+   * katagotraining.org. Must be the same network as `modelPath`, or the
+   * activations will not correspond to the analysis.
+   */
+  readonly checkpointPath: string;
   /** Absolute path to the KataGo analysis config (`analysis_example.cfg` or similar). */
   readonly katagoConfigPath: string;
   /** Python interpreter used to run the activation sidecar. */
@@ -27,9 +41,10 @@ export interface KatascopeConfig {
 export const DEFAULT_CONFIG: KatascopeConfig = {
   katagoPath: 'katago',
   modelPath: '',
+  checkpointPath: '',
   katagoConfigPath: '',
   pythonPath: 'python3',
-  sidecarPath: 'sidecar/activations.py',
+  sidecarPath: 'tools/activation-service/serve.py',
   useFakes: true,
 };
 
@@ -82,6 +97,7 @@ export function parseConfig(input: unknown): ConfigParseResult {
   const config: KatascopeConfig = {
     katagoPath: str('katagoPath', DEFAULT_CONFIG.katagoPath),
     modelPath: str('modelPath', DEFAULT_CONFIG.modelPath),
+    checkpointPath: str('checkpointPath', DEFAULT_CONFIG.checkpointPath),
     katagoConfigPath: str('katagoConfigPath', DEFAULT_CONFIG.katagoConfigPath),
     pythonPath: str('pythonPath', DEFAULT_CONFIG.pythonPath),
     sidecarPath: str('sidecarPath', DEFAULT_CONFIG.sidecarPath),
@@ -98,7 +114,15 @@ export function parseConfig(input: unknown): ConfigParseResult {
 export function validateConfig(config: KatascopeConfig): readonly ConfigProblem[] {
   if (config.useFakes) return [];
   const problems: ConfigProblem[] = [];
-  for (const field of ['katagoPath', 'modelPath', 'katagoConfigPath', 'pythonPath', 'sidecarPath'] as const) {
+  const required = [
+    'katagoPath',
+    'modelPath',
+    'checkpointPath',
+    'katagoConfigPath',
+    'pythonPath',
+    'sidecarPath',
+  ] as const;
+  for (const field of required) {
     if (config[field].trim() === '') {
       problems.push({ field, message: 'must be set when useFakes is false' });
     }

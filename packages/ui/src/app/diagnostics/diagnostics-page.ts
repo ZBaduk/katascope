@@ -1,6 +1,8 @@
 import { ChangeDetectionStrategy, Component, inject, resource, signal } from '@angular/core';
 import type { BridgeStatus, ConfigStatus } from '@katascope/core';
 import { KATASCOPE_API } from '../platform/katascope-api';
+import { SessionStore } from '../state/session-store';
+import { ActivationView } from '../activation/activation-view';
 
 /**
  * Diagnostics tab.
@@ -11,12 +13,30 @@ import { KATASCOPE_API } from '../platform/katascope-api';
  */
 @Component({
   selector: 'ks-diagnostics-page',
+  imports: [ActivationView],
   templateUrl: './diagnostics-page.html',
   styleUrl: './diagnostics-page.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DiagnosticsPage {
   readonly #api = inject(KATASCOPE_API);
+
+  /**
+   * The same store the Board tab writes to.
+   *
+   * Shown here so "the move selection is app-wide" is something you can see
+   * rather than something the architecture document claims: step a move on the
+   * Board tab, switch here, and the number has followed.
+   */
+  protected readonly session = inject(SessionStore);
+
+  /**
+   * Which half of Diagnostics is showing.
+   *
+   * The activation grid is the reason to open this tab; the runtime and config
+   * report is what you look at when something is wrong. Activations first.
+   */
+  protected readonly section = signal<'activations' | 'runtime'>('activations');
 
   /** Absent outside Electron, e.g. when the app is opened via `ng serve`. */
   protected readonly connected = this.#api !== null;

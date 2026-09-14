@@ -1,0 +1,19 @@
+{
+  "$comment": "Attribution for a 2-block, 2-channel net: 4 totals, then 2x4 signed plane values.",
+  "steps": [
+    {
+      "expect": { "type": "describe" },
+      "reply": {
+        "ok": true,
+        "network": { "name": "tiny-b2c2", "blocks": 2, "channels": 2, "boardXSize": 2, "boardYSize": 2 },
+        "maxMoveNumber": 40,
+        "dtype": "float32"
+      }
+    },
+    {
+      "expect": { "type": "attribute", "planeBlock": 1 },
+      "reply": { "ok": true, "dtype": "float32", "blocks": 2, "channels": 2, "planeBlock": 1, "planeShape": [2, 2, 2] },
+      "binaryFloat32": [1, 2, 3, 4, -1, 0.5, -0.25, 1, 2, -2, 0.5, -0.5]
+    }
+  ]
+}

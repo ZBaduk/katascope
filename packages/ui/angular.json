@@ -12,20 +12,38 @@
         "build": {
           "builder": "@angular/build:application",
           "options": {
-            "outputPath": { "base": "dist", "browser": "" },
+            "outputPath": {
+              "base": "dist",
+              "browser": ""
+            },
             "index": "src/index.html",
             "browser": "src/main.ts",
             "polyfills": [],
             "tsConfig": "tsconfig.app.json",
             "baseHref": "./",
-            "assets": [{ "glob": "**/*", "input": "public" }],
-            "styles": ["src/styles.css"]
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "public"
+              }
+            ],
+            "styles": [
+              "src/styles.css"
+            ]
           },
           "configurations": {
             "production": {
               "budgets": [
-                { "type": "initial", "maximumWarning": "500kB", "maximumError": "1MB" },
-                { "type": "anyComponentStyle", "maximumWarning": "4kB", "maximumError": "8kB" }
+                {
+                  "type": "initial",
+                  "maximumWarning": "500kB",
+                  "maximumError": "1MB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "4kB",
+                  "maximumError": "8kB"
+                }
               ],
               "outputHashing": "all"
             },
@@ -40,15 +58,41 @@
         },
         "serve": {
           "builder": "@angular/build:dev-server",
-          "options": { "port": 4200, "host": "127.0.0.1" },
+          "options": {
+            "port": 4200,
+            "host": "127.0.0.1"
+          },
           "configurations": {
-            "production": { "buildTarget": "katascope-ui:build:production" },
-            "development": { "buildTarget": "katascope-ui:build:development" }
+            "production": {
+              "buildTarget": "katascope-ui:build:production"
+            },
+            "development": {
+              "buildTarget": "katascope-ui:build:development"
+            }
           },
           "defaultConfiguration": "development"
+        },
+        "test": {
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "buildTarget": "katascope-ui:build:development",
+            "tsConfig": "tsconfig.spec.json",
+            "runner": "vitest",
+            "providersFile": "src/test-providers.ts",
+            "include": [
+              "src/**/*.spec.ts"
+            ],
+            "watch": false
+          }
         }
       }
     }
   },
-  "cli": { "analytics": false, "cache": { "enabled": true, "path": ".angular/cache" } }
+  "cli": {
+    "analytics": false,
+    "cache": {
+      "enabled": true,
+      "path": ".angular/cache"
+    }
+  }
 }

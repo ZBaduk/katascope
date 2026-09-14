@@ -1,0 +1,5 @@
+(;GM[1]FF[4]CA[UTF-8]SZ[13:9]KM[3.5]
+C[Non-square board. KataGo supports these, so the parser must not
+assume width equals height.]
+PB[Wide]PW[Short]RE[Void]
+;B[dd];W[jd];B[dg];W[je])

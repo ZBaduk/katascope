@@ -1,0 +1,6 @@
+{
+  "stderrOnStart": ["KataGo v1.15.3", "Loaded config analysis.cfg", "Started, ready to begin handling requests"],
+  "steps": [
+    { "expect": { "action": "query_version" }, "reply": { "version": "1.15.3" } }
+  ]
+}

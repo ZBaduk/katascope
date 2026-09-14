@@ -1,0 +1,255 @@
+:host {
+  display: block;
+  height: 100%;
+  min-height: 0;
+}
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 100%;
+  padding: 16px;
+  min-height: 0;
+}
+
+/*
+  The board takes what the notices leave, and they are all conditional.
+
+  This was a positional `grid-template-rows: auto auto auto 1fr auto`, which
+  only held while exactly the expected notices were showing: every `@if` in the
+  template shifts which row the `1fr` lands on, so adding one silently handed
+  the flexible row to a banner and squashed the board. Naming the flexible item
+  cannot drift as the template grows.
+
+  Nothing sets the other children explicitly: a flex item defaults to
+  `flex: 0 1 auto`, which already refuses to grow. A `.page > *` rule saying so
+  would be worse than redundant -- under emulated encapsulation it compiles to
+  `.page[_ngcontent] > *[_ngcontent]`, which outranks `.board-area[_ngcontent]`
+  and quietly takes the board's `flex-grow` back off it.
+*/
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.toolbar__spacer {
+  flex: 1;
+}
+
+.toolbar__open {
+  padding: 6px 12px;
+  font: inherit;
+  color: var(--ks-text);
+  background: var(--ks-surface-raised);
+  border: 1px solid var(--ks-border);
+  border-radius: var(--ks-radius);
+  cursor: pointer;
+}
+
+.toolbar__open:hover:not(:disabled) {
+  border-color: var(--ks-accent);
+}
+
+.toolbar__open:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.toolbar__game {
+  font-size: 12px;
+  color: var(--ks-text-muted);
+  overflow-wrap: anywhere;
+}
+
+.toolbar__game--empty {
+  font-style: italic;
+}
+
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--ks-text-muted);
+  user-select: none;
+  cursor: pointer;
+}
+
+.toggle input {
+  accent-color: var(--ks-accent);
+}
+
+.toggle--select select {
+  font: inherit;
+  font-size: 12px;
+  color: var(--ks-text);
+  background: var(--ks-surface-raised);
+  border: 1px solid var(--ks-border);
+  border-radius: var(--ks-radius);
+  padding: 2px 4px;
+}
+
+.notice {
+  margin: 0;
+  padding: 8px 12px;
+  font-size: 12px;
+  background: var(--ks-surface);
+  border: 1px solid var(--ks-border);
+  border-left-width: 3px;
+  border-radius: var(--ks-radius);
+  color: var(--ks-text-muted);
+}
+
+.notice--warn {
+  border-left-color: var(--ks-warn);
+}
+
+.notice--target {
+  border-left-color: var(--ks-accent);
+  color: var(--ks-text);
+}
+
+.notice__clear {
+  margin-left: 8px;
+  padding: 1px 8px;
+  font: inherit;
+  font-size: 11px;
+  color: var(--ks-text-muted);
+  background: var(--ks-surface-raised);
+  border: 1px solid var(--ks-border);
+  border-radius: var(--ks-radius);
+  cursor: pointer;
+}
+
+.toggle--select select {
+  font: inherit;
+  font-size: 12px;
+  color: var(--ks-text);
+  background: var(--ks-surface-raised);
+  border: 1px solid var(--ks-border);
+  border-radius: var(--ks-radius);
+  padding: 2px 4px;
+}
+
+.notice--error {
+  border-left-color: var(--ks-error);
+  color: var(--ks-error);
+}
+
+/* The fake-data banner has to be hard to miss: every number under it is made up. */
+.notice--fake {
+  border-left-color: var(--ks-warn);
+  background: color-mix(in srgb, var(--ks-warn) 12%, var(--ks-surface));
+  color: var(--ks-text);
+}
+
+.board-area {
+  /*
+    Basis 0, not `auto`. With `auto` the item sizes from its content, and the
+    content is a canvas at `height: 100%` of a parent whose height is what we
+    are trying to work out -- so it resolves to the canvas's own intrinsic size
+    and the board grows past the viewport, taking the navigator with it. Basis 0
+    makes the height come from the free space the notices leave, which is what
+    the `1fr` grid row used to provide.
+  */
+  flex: 1 1 0;
+  min-height: 0;
+  min-width: 0;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.footer ks-move-navigator {
+  flex: 1;
+  min-width: 280px;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--ks-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.status__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ks-border);
+  flex: none;
+}
+
+.status__dot--ok {
+  background: var(--ks-ok);
+}
+
+.status__dot--bad {
+  background: var(--ks-error);
+}
+
+.status__dot--busy {
+  background: var(--ks-accent);
+}
+
+code {
+  font-family: var(--ks-font-mono);
+  font-size: 11px;
+}
+
+
+/* The play bar: one row, under the toolbar, above every notice. */
+.playbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 6px 8px;
+  border: 1px solid var(--ks-border);
+  border-radius: var(--ks-radius);
+  background: var(--ks-surface);
+  font-size: 12px;
+}
+
+.playbar__run {
+  padding: 4px 10px;
+  font: inherit;
+  color: var(--ks-text);
+  background: var(--ks-surface-raised);
+  border: 1px solid var(--ks-border);
+  border-radius: var(--ks-radius);
+  cursor: pointer;
+}
+
+.playbar__run:hover:not(:disabled) {
+  border-color: var(--ks-accent);
+}
+
+.playbar__run:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.playbar__value {
+  min-width: 52px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ks-text);
+}
+
+.playbar__status {
+  color: var(--ks-text-dim);
+}
+
+.playbar__status--bad {
+  color: var(--ks-error);
+}

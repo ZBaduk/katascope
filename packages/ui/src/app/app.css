@@ -22,5 +22,7 @@
 
 .shell__body {
   min-height: 0;
-  overflow: auto;
+  /* `hidden`, not `auto`: each tab manages its own scrolling, and a scrollbar
+     here would let a tall tab push its own controls out of reach. */
+  overflow: hidden;
 }

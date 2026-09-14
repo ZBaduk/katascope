@@ -1,0 +1,13 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2023"],
+    // Tests run under Node even though the package they exercise must not.
+    // This is the one place `node:fs` is legitimate in core -- for reading
+    // fixtures, never for anything that ends up in `src/`.
+    "types": ["node"],
+    "noEmit": true,
+    "composite": false
+  },
+  "include": ["test/**/*.ts", "vitest.config.ts"]
+}
